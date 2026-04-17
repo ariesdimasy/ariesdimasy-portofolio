@@ -44,7 +44,7 @@ func (us userService) DeleteUser(user *models.User) error {
 }
 
 func (us userService) GetUserByID(id uint) (*models.User, error) {
-	return us.repo.GetUserByID(id)
+	return us.repo.GetUserID(id)
 }
 
 func (us userService) GetAllUsers(query models.UserQuery) ([]models.User, int64, error) {

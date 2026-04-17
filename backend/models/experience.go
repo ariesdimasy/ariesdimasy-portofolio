@@ -51,3 +51,10 @@ type ExperienceUpdateRequest struct {
 type ExperienceDeleteRequest struct {
 	ID uint `json:"id" binding:"required"`
 }
+
+type ExperienceQuery struct {
+	Title       string `form:"title"`
+	CompanyName string `form:"company_name"`
+	Page        int    `form:"page, default=1"`
+	Limit       int    `form:"limit, default=10"`
+}

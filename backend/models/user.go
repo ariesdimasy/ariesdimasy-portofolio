@@ -4,8 +4,9 @@ import "time"
 
 type User struct {
 	ID        uint      `json:"id" gorm:"primaryKey;autoIncrement"`
-	Name      string    `json:"name" gorm:"not null"`
-	Email     string    `json:"email" gorm:"not null"`
+	Name      string    `json:"name" gorm:"not null;unique"`
+	Username  string    `json:"username" gorm:"not null;unique"`
+	Email     string    `json:"email" gorm:"not null;unique"`
 	Password  string    `json:"password" gorm:"not null"`
 	LoginBy   string    `json:"login_by" gorm:"not null, type:enum('email','google')"`
 	Avatar    string    `json:"avatar" gorm:"not null"`

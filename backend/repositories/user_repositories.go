@@ -12,7 +12,9 @@ type UserRepository interface {
 	CreateUser(user *models.User) error
 	UpdateUser(user *models.User) error
 	DeleteUser(user *models.User) error
-	GetUserByID(id uint) (*models.User, error)
+	GetUserID(id uint) (*models.User, error)
+	GetUserEmail(email string) (*models.User, error)
+	GetUserUsername(username string) (*models.User, error)
 	GetAllUsers(query models.UserQuery) ([]models.User, int64, error)
 }
 
@@ -44,9 +46,19 @@ func (ur userRepository) DeleteUser(user *models.User) error {
 	return ur.db.Delete(user).Error
 }
 
-func (ur userRepository) GetUserByID(id uint) (*models.User, error) {
+func (ur userRepository) GetUserID(id uint) (*models.User, error) {
 	var user models.User
 	return &user, ur.db.First(&user, id).Error
+}
+
+func (ur userRepository) GetUserEmail(email string) (*models.User, error) {
+	var user models.User
+	return &user, ur.db.Where("email = ?", email).First(&user).Error
+}
+
+func (ur userRepository) GetUserUsername(username string) (*models.User, error) {
+	var user models.User
+	return &user, ur.db.Where("username = ?", username).First(&user).Error
 }
 
 func (ur userRepository) GetAllUsers(query models.UserQuery) ([]models.User, int64, error) {
@@ -57,10 +69,6 @@ func (ur userRepository) GetAllUsers(query models.UserQuery) ([]models.User, int
 
 	if query.Name != "" {
 		errCount = errCount.Where("name LIKE ?", "%"+query.Name+"%")
-	}
-
-	if query.Email != "" {
-		errCount = errCount.Where("email LIKE ?", "%"+query.Email+"%")
 	}
 
 	if query.LoginBy != "" {
@@ -74,24 +82,18 @@ func (ur userRepository) GetAllUsers(query models.UserQuery) ([]models.User, int
 	}
 
 	offset := (query.Page - 1) * query.Limit
-	errData := ur.db.Order("created_at desc").Offset(offset).Limit(query.Limit).Find(&users)
+	dbData := ur.db.Model(&models.User{}).Order("created_at desc").Offset(offset).Limit(query.Limit)
 
 	if query.Name != "" {
-		errData = errData.Where("name LIKE ?", "%"+query.Name+"%")
-	}
-
-	if query.Email != "" {
-		errData = errData.Where("email LIKE ?", "%"+query.Email+"%")
+		dbData = dbData.Where("name LIKE ?", "%"+query.Name+"%")
 	}
 
 	if query.LoginBy != "" {
-		errData = errData.Where("login_by = ?", query.LoginBy)
+		dbData = dbData.Where("login_by = ?", query.LoginBy)
 	}
 
-	errData.Find(&users)
-
-	if errData.Error != nil {
-		return nil, 0, errData.Error
+	if err := dbData.Find(&users).Error; err != nil {
+		return nil, 0, err
 	}
 
 	return users, total, nil

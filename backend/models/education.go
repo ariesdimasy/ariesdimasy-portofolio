@@ -49,3 +49,11 @@ type EducationUpdateRequest struct {
 type EducationDeleteRequest struct {
 	ID uint `json:"id" binding:"required"`
 }
+
+type EducationQuery struct {
+	Degree      string `form:"degree"`
+	Major       string `form:"major"`
+	Institution string `form:"institution"`
+	Page        int    `form:"page, default=1"`
+	Limit       int    `form:"limit, default=10"`
+}

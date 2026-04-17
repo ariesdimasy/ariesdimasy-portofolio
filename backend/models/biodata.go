@@ -45,3 +45,7 @@ type BiodataUpdateRequest struct {
 type BiodataDeleteRequest struct {
 	ID uint `json:"id" binding:"required"`
 }
+
+type BiodataQuery struct {
+	UserID uint `json:"user_id"`
+}

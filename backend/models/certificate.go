@@ -57,3 +57,9 @@ type CertificateUpdateRequest struct {
 type CertificateDeleteRequest struct {
 	ID uint `json:"id" binding:"required"`
 }
+
+type CertificateQuery struct {
+	Name  string `form:"name"`
+	Page  int    `form:"page, default=1"`
+	Limit int    `form:"limit, default=10"`
+}

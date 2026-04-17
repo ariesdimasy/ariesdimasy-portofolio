@@ -80,3 +80,10 @@ type ProjectImageUpdateRequest struct {
 type ProjectImageDeleteRequest struct {
 	ID uint `json:"id" binding:"required"`
 }
+
+type ProjectQuery struct {
+	Title       string `form:"title"`
+	Description string `form:"description"`
+	Page        int    `form:"page, default=1"`
+	Limit       int    `form:"limit, default=10"`
+}

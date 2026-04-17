@@ -4,7 +4,7 @@ import "time"
 
 type Skill struct {
 	ID        uint      `json:"id" gorm:"primaryKey;autoIncrement"`
-	Name      string    `json:"name" gorm:"not null"`
+	Name      string    `json:"name" gorm:"not null;unique"`
 	Icon      string    `json:"icon" gorm:"not null"`
 	Type      string    `json:"type" gorm:"type:enum('frontend','backend','database')"`
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
@@ -34,4 +34,11 @@ type SkillUpdateRequest struct {
 
 type SkillDeleteRequest struct {
 	ID uint `json:"id" binding:"required"`
+}
+
+type SkillQuery struct {
+	Name  string `form:"name"`
+	Type  string `form:"type"`
+	Page  int    `form:"page, default=1"`
+	Limit int    `form:"limit, default=10"`
 }
