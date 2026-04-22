@@ -11,7 +11,7 @@ type SosmedRepository interface {
 	UpdateSosmed(sosmed *models.Sosmed) error
 	DeleteSosmed(sosmed *models.Sosmed) error
 	GetSosmedByID(id uint) (*models.Sosmed, error)
-	GetAllSosmeds(userID uint) ([]models.Sosmed, error)
+	GetAllSosmeds(userID uint, query models.SosmedQuery) ([]models.Sosmed, error)
 }
 
 type sosmedRepository struct {
@@ -39,7 +39,13 @@ func (sr sosmedRepository) GetSosmedByID(id uint) (*models.Sosmed, error) {
 	return &sosmed, sr.db.First(&sosmed, id).Error
 }
 
-func (sr sosmedRepository) GetAllSosmeds(userID uint) ([]models.Sosmed, error) {
+func (sr sosmedRepository) GetAllSosmeds(userID uint, query models.SosmedQuery) ([]models.Sosmed, error) {
 	var sosmeds []models.Sosmed
-	return sosmeds, sr.db.Where("user_id = ?", userID).Find(&sosmeds).Error
+	dbData := sr.db.Model(&models.Sosmed{}).Where("user_id = ?", userID)
+
+	if query.Name != "" {
+		dbData = dbData.Where("name LIKE ?", "%"+query.Name+"%")
+	}
+
+	return sosmeds, dbData.Find(&sosmeds).Error
 }

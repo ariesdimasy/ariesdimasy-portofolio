@@ -37,8 +37,6 @@ type SkillDeleteRequest struct {
 }
 
 type SkillQuery struct {
-	Name  string `form:"name"`
-	Type  string `form:"type"`
-	Page  int    `form:"page, default=1"`
-	Limit int    `form:"limit, default=10"`
+	Name string `form:"name"`
+	Type string `form:"type"`
 }

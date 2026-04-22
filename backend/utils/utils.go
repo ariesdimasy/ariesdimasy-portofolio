@@ -13,3 +13,11 @@ func StrToInt(s string, defaultValue int) int {
 	}
 	return v
 }
+
+func StringToUint(s string) (uint, error) {
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, err
+	}
+	return uint(v), nil
+}

@@ -9,22 +9,32 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserController struct {
-	UserService services.UserService
+type UserController interface {
+	Register(c *gin.Context)
+	Login(c *gin.Context)
+	CreateUser(c *gin.Context)
+	UpdateUser(c *gin.Context)
+	DeleteUser(c *gin.Context)
+	GetUserByID(c *gin.Context)
+	GetAllUsers(c *gin.Context)
 }
 
-func NewUserController(userService services.UserService) *UserController {
-	return &UserController{UserService: userService}
+type userController struct {
+	userService services.UserService
 }
 
-func (us *UserController) Register(c *gin.Context) {
+func NewUserController(userService services.UserService) UserController {
+	return &userController{userService: userService}
+}
+
+func (uc userController) Register(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := us.UserService.Register(&user); err != nil {
+	if err := uc.userService.Register(&user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -32,29 +42,34 @@ func (us *UserController) Register(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User registered successfully"})
 }
 
-func (us *UserController) Login(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+func (uc userController) Login(c *gin.Context) {
+	var req models.Login
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := us.UserService.Login(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	user := models.User{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	if err := uc.userService.Login(&user); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User logged in successfully"})
 }
 
-func (us *UserController) CreateUser(c *gin.Context) {
+func (uc userController) CreateUser(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := us.UserService.CreateUser(&user); err != nil {
+	if err := uc.userService.CreateUser(&user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -62,14 +77,31 @@ func (us *UserController) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
 }
 
-func (us *UserController) UpdateUser(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+func (uc userController) UpdateUser(c *gin.Context) {
+	id := c.Param("id")
+	uintID, err := utils.StringToUint(id)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := us.UserService.UpdateUser(&user); err != nil {
+	var req models.UserUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := uc.userService.GetUserByID(uintID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	user.Name = req.Name
+	user.Email = req.Email
+	user.Password = req.Password
+
+	if err := uc.userService.UpdateUser(user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -77,14 +109,20 @@ func (us *UserController) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
 }
 
-func (us *UserController) DeleteUser(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+func (uc userController) DeleteUser(c *gin.Context) {
+	var req models.UserDeleteRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := us.UserService.DeleteUser(&user); err != nil {
+	user, err := uc.userService.GetUserByID(req.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	if err := uc.userService.DeleteUser(user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -92,14 +130,15 @@ func (us *UserController) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
 
-func (us *UserController) GetUserByID(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+func (uc userController) GetUserByID(c *gin.Context) {
+	id := c.Param("id")
+	uintID, err := utils.StringToUint(id)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	result, err := us.UserService.GetUserByID(user.ID)
+	result, err := uc.userService.GetUserByID(uintID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -108,8 +147,8 @@ func (us *UserController) GetUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func (us *UserController) GetAllUsers(c *gin.Context) {
-	users, total, err := us.UserService.GetAllUsers(models.UserQuery{
+func (uc userController) GetAllUsers(c *gin.Context) {
+	users, total, err := uc.userService.GetAllUsers(models.UserQuery{
 		Page:    utils.StrToInt(c.Query("page"), 1),
 		Limit:   utils.StrToInt(c.Query("limit"), 10),
 		Name:    c.Query("name"),

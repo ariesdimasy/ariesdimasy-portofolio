@@ -41,3 +41,7 @@ type SosmedUpdateRequest struct {
 type SosmedDeleteRequest struct {
 	ID uint `json:"id" binding:"required"`
 }
+
+type SosmedQuery struct {
+	Name string `json:"name" form:"name"`
+}

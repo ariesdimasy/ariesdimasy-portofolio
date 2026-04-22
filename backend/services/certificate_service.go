@@ -10,7 +10,7 @@ type CertificateService interface {
 	UpdateCertificate(certificate *models.Certificate) error
 	DeleteCertificate(certificate *models.Certificate) error
 	GetCertificateByID(id uint) (*models.Certificate, error)
-	GetAllCertificates(userID uint, query models.CertificateQuery) ([]models.Certificate, error)
+	GetAllCertificates(userID uint, query models.CertificateQuery) ([]models.Certificate, int64, error)
 }
 
 type certificateService struct {
@@ -37,6 +37,6 @@ func (cs certificateService) GetCertificateByID(id uint) (*models.Certificate, e
 	return cs.repo.GetCertificateByID(id)
 }
 
-func (cs certificateService) GetAllCertificates(userID uint, query models.CertificateQuery) ([]models.Certificate, error) {
+func (cs certificateService) GetAllCertificates(userID uint, query models.CertificateQuery) ([]models.Certificate, int64, error) {
 	return cs.repo.GetAllCertificates(userID, query)
 }

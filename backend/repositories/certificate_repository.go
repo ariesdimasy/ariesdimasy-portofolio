@@ -11,7 +11,7 @@ type CertificateRepository interface {
 	UpdateCertificate(certificate *models.Certificate) error
 	DeleteCertificate(certificate *models.Certificate) error
 	GetCertificateByID(id uint) (*models.Certificate, error)
-	GetAllCertificates(userID uint, query models.CertificateQuery) ([]models.Certificate, error)
+	GetAllCertificates(userID uint, query models.CertificateQuery) ([]models.Certificate, int64, error)
 }
 
 type certificateRepository struct {
@@ -39,18 +39,18 @@ func (cr certificateRepository) GetCertificateByID(id uint) (*models.Certificate
 	return &certificate, cr.db.First(&certificate, id).Error
 }
 
-func (cr certificateRepository) GetAllCertificates(userID uint, query models.CertificateQuery) ([]models.Certificate, error) {
+func (cr certificateRepository) GetAllCertificates(userID uint, query models.CertificateQuery) ([]models.Certificate, int64, error) {
 	var certificates []models.Certificate
 	var total int64
 
 	errCount := cr.db.Model(&models.Certificate{}).Where("user_id = ?", userID).Count(&total)
 
 	if errCount.Error != nil {
-		return nil, errCount.Error
+		return nil, 0, errCount.Error
 	}
 
 	if total == 0 {
-		return nil, gorm.ErrRecordNotFound
+		return nil, 0, nil
 	}
 
 	offset := (query.Page - 1) * query.Limit
@@ -61,8 +61,8 @@ func (cr certificateRepository) GetAllCertificates(userID uint, query models.Cer
 	}
 
 	if err := dbData.Find(&certificates).Error; err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return certificates, nil
+	return certificates, total, nil
 }

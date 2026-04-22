@@ -3,27 +3,43 @@ package controllers
 import (
 	"ariesdimasy-portofolio/models"
 	"ariesdimasy-portofolio/services"
+	"ariesdimasy-portofolio/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-type BiodataController struct {
-	BiodataService services.BiodataService
+type BiodataController interface {
+	CreateBiodata(c *gin.Context)
+	UpdateBiodata(c *gin.Context)
+	DeleteBiodata(c *gin.Context)
+	GetBiodataByID(c *gin.Context)
 }
 
-func NewBiodataController(biodataService services.BiodataService) *BiodataController {
-	return &BiodataController{BiodataService: biodataService}
+type biodataController struct {
+	biodataService services.BiodataService
 }
 
-func (bc *BiodataController) CreateBiodata(c *gin.Context) {
-	var biodata models.Biodata
-	if err := c.ShouldBindJSON(&biodata); err != nil {
+func NewBiodataController(biodataService services.BiodataService) BiodataController {
+	return &biodataController{biodataService: biodataService}
+}
+
+func (bc biodataController) CreateBiodata(c *gin.Context) {
+	var req models.BiodataCreateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := bc.BiodataService.CreateBiodata(&biodata); err != nil {
+	biodata := models.Biodata{
+		UserID:   req.UserID,
+		Headline: req.Headline,
+		About:    req.About,
+		Address:  req.Address,
+		Phone:    req.Phone,
+	}
+
+	if err := bc.biodataService.CreateBiodata(&biodata); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -31,14 +47,32 @@ func (bc *BiodataController) CreateBiodata(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Biodata created successfully"})
 }
 
-func (bc *BiodataController) UpdateBiodata(c *gin.Context) {
-	var biodata models.Biodata
-	if err := c.ShouldBindJSON(&biodata); err != nil {
+func (bc biodataController) UpdateBiodata(c *gin.Context) {
+	id := c.Param("id")
+	uintID, err := utils.StringToUint(id)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := bc.BiodataService.UpdateBiodata(&biodata); err != nil {
+	var req models.BiodataUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	biodata, err := bc.biodataService.GetBiodataByID(uintID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Biodata not found"})
+		return
+	}
+
+	biodata.Headline = req.Headline
+	biodata.About = req.About
+	biodata.Address = req.Address
+	biodata.Phone = req.Phone
+
+	if err := bc.biodataService.UpdateBiodata(biodata); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -46,14 +80,20 @@ func (bc *BiodataController) UpdateBiodata(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Biodata updated successfully"})
 }
 
-func (bc *BiodataController) DeleteBiodata(c *gin.Context) {
-	var biodata models.Biodata
-	if err := c.ShouldBindJSON(&biodata); err != nil {
+func (bc biodataController) DeleteBiodata(c *gin.Context) {
+	var req models.BiodataDeleteRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := bc.BiodataService.DeleteBiodata(&biodata); err != nil {
+	biodata, err := bc.biodataService.GetBiodataByID(req.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Biodata not found"})
+		return
+	}
+
+	if err := bc.biodataService.DeleteBiodata(biodata); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -61,14 +101,15 @@ func (bc *BiodataController) DeleteBiodata(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Biodata deleted successfully"})
 }
 
-func (bc *BiodataController) GetBiodataByID(c *gin.Context) {
-	var biodata models.Biodata
-	if err := c.ShouldBindJSON(&biodata); err != nil {
+func (bc biodataController) GetBiodataByID(c *gin.Context) {
+	id := c.Param("id")
+	uintID, err := utils.StringToUint(id)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	result, err := bc.BiodataService.GetBiodataByID(biodata.ID)
+	result, err := bc.biodataService.GetBiodataByID(uintID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

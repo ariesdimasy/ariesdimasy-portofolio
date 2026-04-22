@@ -11,7 +11,7 @@ type SkillRepository interface {
 	UpdateSkill(skill *models.Skill) error
 	DeleteSkill(skill *models.Skill) error
 	GetSkillByID(id uint) (*models.Skill, error)
-	GetAllSkills() ([]models.Skill, error)
+	GetAllSkills(query models.SkillQuery) ([]models.Skill, error)
 }
 
 type skillRepository struct {
@@ -39,7 +39,21 @@ func (sr skillRepository) GetSkillByID(id uint) (*models.Skill, error) {
 	return &skill, sr.db.First(&skill, id).Error
 }
 
-func (sr skillRepository) GetAllSkills() ([]models.Skill, error) {
+func (sr skillRepository) GetAllSkills(query models.SkillQuery) ([]models.Skill, error) {
 	var skills []models.Skill
-	return skills, sr.db.Find(&skills).Error
+
+	dbData := sr.db.Model(&models.Skill{})
+
+	if query.Name != "" {
+		dbData = dbData.Where("name LIKE ?", "%"+query.Name+"%")
+	}
+	if query.Type != "" {
+		dbData = dbData.Where("type = ?", query.Type)
+	}
+
+	if err := dbData.Find(&skills).Error; err != nil {
+		return nil, err
+	}
+
+	return skills, nil
 }

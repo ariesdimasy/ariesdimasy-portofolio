@@ -11,7 +11,7 @@ type ExperienceRepository interface {
 	UpdateExperience(experience *models.Experience) error
 	DeleteExperience(experience *models.Experience) error
 	GetExperienceByID(id uint) (*models.Experience, error)
-	GetAllExperiences(userID uint, query models.ExperienceQuery) ([]models.Experience, error)
+	GetAllExperiences(userID uint, query models.ExperienceQuery) ([]models.Experience, int64, error)
 }
 
 type experienceRepository struct {
@@ -39,12 +39,12 @@ func (er experienceRepository) GetExperienceByID(id uint) (*models.Experience, e
 	return &experience, er.db.Preload("Skill").First(&experience, id).Error
 }
 
-func (er experienceRepository) GetAllExperiences(userID uint, query models.ExperienceQuery) ([]models.Experience, error) {
+func (er experienceRepository) GetAllExperiences(userID uint, query models.ExperienceQuery) ([]models.Experience, int64, error) {
 	var experiences []models.Experience
 	var total int64
 	errCount := er.db.Model(&models.Experience{}).Where("user_id = ?", userID).Count(&total)
 	if errCount.Error != nil {
-		return nil, errCount.Error
+		return nil, 0, errCount.Error
 	}
 
 	offset := (query.Page - 1) * query.Limit
@@ -59,8 +59,8 @@ func (er experienceRepository) GetAllExperiences(userID uint, query models.Exper
 	}
 
 	if err := dbData.Preload("Skill").Find(&experiences).Error; err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return experiences, nil
+	return experiences, total, nil
 }

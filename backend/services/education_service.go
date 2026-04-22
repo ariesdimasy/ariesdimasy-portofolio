@@ -38,5 +38,6 @@ func (es educationService) GetEducationByID(id uint) (*models.Education, error) 
 }
 
 func (es educationService) GetAllEducations(userID uint, query models.EducationQuery) ([]models.Education, int64, error) {
+
 	return es.educationRepo.GetAllEducations(userID, query)
 }
