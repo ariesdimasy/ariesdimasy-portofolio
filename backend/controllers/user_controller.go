@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"ariesdimasy-portofolio/helpers"
 	"ariesdimasy-portofolio/models"
 	"ariesdimasy-portofolio/services"
 	"ariesdimasy-portofolio/utils"
@@ -49,17 +50,23 @@ func (uc userController) Login(c *gin.Context) {
 		return
 	}
 
-	user := models.User{
-		Email:    req.Email,
-		Password: req.Password,
-	}
-
-	if err := uc.userService.Login(&user); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	user, err := uc.userService.Login(req.Email, req.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User logged in successfully"})
+	token, err := helpers.GenerateJWT(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"token":   token,
+		"user":    user,
+	})
 }
 
 func (uc userController) CreateUser(c *gin.Context) {

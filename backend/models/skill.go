@@ -6,7 +6,7 @@ type Skill struct {
 	ID        uint      `json:"id" gorm:"primaryKey;autoIncrement"`
 	Name      string    `json:"name" gorm:"not null;unique"`
 	Icon      string    `json:"icon" gorm:"not null"`
-	Type      string    `json:"type" gorm:"type:enum('frontend','backend','database')"`
+	Type      string    `json:"type" gorm:"type:text"`
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }

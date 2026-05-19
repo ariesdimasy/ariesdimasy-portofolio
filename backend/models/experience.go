@@ -11,7 +11,7 @@ type Experience struct {
 	StartDate   time.Time `json:"start_date" gorm:"not null"`
 	EndDate     time.Time `json:"end_date" gorm:"not null"`
 	Description string    `json:"description" gorm:"not null"`
-	Skill       []Skill   `json:"skill" gorm:"one2many:experience_skills;foreignKey:ExperienceID;references:ID"`
+	Skill       []Skill   `json:"skill" gorm:"many2many:experience_skills;"`
 	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }

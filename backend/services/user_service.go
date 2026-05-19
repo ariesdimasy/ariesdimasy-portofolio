@@ -7,7 +7,7 @@ import (
 
 type UserService interface {
 	Register(user *models.User) error
-	Login(user *models.User) error
+	Login(email, password string) (*models.User, error)
 	CreateUser(user *models.User) error
 	UpdateUser(user *models.User) error
 	DeleteUser(user *models.User) error
@@ -27,8 +27,8 @@ func (us userService) Register(user *models.User) error {
 	return us.repo.Register(user)
 }
 
-func (us userService) Login(user *models.User) error {
-	return us.repo.Login(user)
+func (us userService) Login(email, password string) (*models.User, error) {
+	return us.repo.Login(email, password)
 }
 
 func (us userService) CreateUser(user *models.User) error {

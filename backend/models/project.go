@@ -10,8 +10,8 @@ type Project struct {
 	Description  string         `json:"description" gorm:"not null"`
 	Image        string         `json:"image" gorm:"not null"`
 	Link         string         `json:"link" gorm:"not null"`
-	Skill        []Skill        `json:"skill" gorm:"one2many:project_skills;foreignKey:ProjectID;references:ID"`
-	ProjectImage []ProjectImage `json:"project_image" gorm:"one2many:project_images;foreignKey:ProjectID;references:ID"`
+	Skill        []Skill        `json:"skill" gorm:"many2many:project_skills;"`
+	ProjectImage []ProjectImage `json:"project_image" gorm:"foreignKey:ProjectID"`
 	CreatedAt    time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt    time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 }

@@ -10,7 +10,7 @@ type SkillService interface {
 	UpdateSkill(skill *models.Skill) error
 	DeleteSkill(skill *models.Skill) error
 	GetSkillByID(id uint) (*models.Skill, error)
-	GetAllSkills(query models.SkillQuery) ([]models.Skill, int64, error)
+	GetAllSkills(query models.SkillQuery) ([]models.Skill, error)
 }
 
 type skillService struct {
@@ -37,6 +37,6 @@ func (ss skillService) GetSkillByID(id uint) (*models.Skill, error) {
 	return ss.skillRepo.GetSkillByID(id)
 }
 
-func (ss skillService) GetAllSkills(query models.SkillQuery) ([]models.Skill, int64, error) {
+func (ss skillService) GetAllSkills(query models.SkillQuery) ([]models.Skill, error) {
 	return ss.skillRepo.GetAllSkills(query)
 }

@@ -8,7 +8,7 @@ import (
 
 type UserRepository interface {
 	Register(user *models.User) error
-	Login(user *models.User) error
+	Login(email, password string) (*models.User, error)
 	CreateUser(user *models.User) error
 	UpdateUser(user *models.User) error
 	DeleteUser(user *models.User) error
@@ -30,8 +30,13 @@ func (ur userRepository) Register(user *models.User) error {
 	return ur.db.Create(user).Error
 }
 
-func (ur userRepository) Login(user *models.User) error {
-	return ur.db.Where("email = ? AND password = ?", user.Email, user.Password).First(user).Error
+func (ur userRepository) Login(email, password string) (*models.User, error) {
+	var user models.User
+	err := ur.db.Where("email = ? AND password = ?", email, password).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (ur userRepository) CreateUser(user *models.User) error {
